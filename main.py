@@ -10,4 +10,4 @@ def main():
 
 if __name__ == "__main__":
     df = main()
-    print(df)
+    df.to_csv("meteo_data_civ.csv", index=False)
