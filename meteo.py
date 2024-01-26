@@ -2,7 +2,7 @@ import requests
 import re
 import unicodedata
 
-from bs4 import BeautifulSoup as bs
+from bs4 import BeautifulSoup as bs  # type: ignore
 import pandas as pd
 from tqdm import tqdm
 
