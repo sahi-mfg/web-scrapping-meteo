@@ -3,3 +3,5 @@ beautifulsoup4
 requests
 tqdm
 SQLAlchemy
+pytest
+pylint
