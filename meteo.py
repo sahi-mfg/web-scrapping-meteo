@@ -1,3 +1,5 @@
+from typing import Tuple, List
+
 import requests
 import re
 import unicodedata
@@ -7,8 +9,8 @@ import pandas as pd
 from tqdm import tqdm
 
 
-def get_countries_urls(url):
-    """get urls for each countries
+def get_countries_urls(url: str) -> pd.DataFrame:
+    """get urls for each country
 
     Parameters
     ----------
@@ -35,8 +37,8 @@ def get_countries_urls(url):
     return df_country
 
 
-def get_cities_url(url):
-    """get urls for each cities of a country
+def get_cities_url(url: str) -> List[Tuple[str, str]]:
+    """get urls for each city of a country
 
     Parameters
     ----------
@@ -46,7 +48,7 @@ def get_cities_url(url):
     Returns
     -------
     list
-        list of urls for each cities
+        A list of urls for each city
     """
     request = requests.get(url)
     soup = bs(request.text, "html.parser")
@@ -62,7 +64,7 @@ def get_cities_url(url):
     return infos[15:]
 
 
-def slugify(string):
+def slugify(string: str) -> str:
     """slugify a string
 
     Parameters
@@ -78,13 +80,13 @@ def slugify(string):
     # Normalize the string to remove accents and diacritics
     normalized_string = unicodedata.normalize("NFKD", string)
     # Replace non-alphanumeric characters with a hyphen
-    slugified_string = re.sub(r"[^\w\s-]", "", normalized_string).strip().lower()
+    slugify_string = re.sub(r"[^\w\s-]", "", normalized_string).strip().lower()
     # Replace spaces with a hyphen
-    slugified_string = re.sub(r"[-\s]+", "-", slugified_string)
-    return slugified_string
+    slugify_string = re.sub(r"[-\s]+", "-", slugify_string)
+    return slugify_string
 
 
-def split_on_first_digit(s):
+def split_on_first_digit(s: str) -> Tuple[str, str]:
     """split a string on the first digit
 
     Parameters
@@ -95,7 +97,7 @@ def split_on_first_digit(s):
     Returns
     -------
     tuple
-        the string splitted
+        the string split
     """
     for i, char in enumerate(s):
         if char.isdigit():
@@ -103,7 +105,7 @@ def split_on_first_digit(s):
     return s, ""
 
 
-def get_day_data(url):
+def get_day_data(url: str) -> tuple[list[str], list[str]]:
     """get data for a specific day
 
     Parameters
@@ -114,7 +116,7 @@ def get_day_data(url):
     Returns
     -------
     tuple
-        tuple containing the infos and their values
+        A tuple containing the information and their values
     """
     request = requests.get(url)
     soup = bs(request.text, "html.parser")
@@ -128,10 +130,10 @@ def get_day_data(url):
     # extractions des valeurs des kpis
     values = soup.find("table").find_all("td", {"class": "text-center bg-primary"})[1:]
     values = [value.get_text() for value in values]
-    return (kpis, values)
+    return kpis, values
 
 
-def get_data(url, years=[]):
+def get_data(url: str, years: int = None) -> pd.DataFrame:
     """get data for a country and for the specified years
 
     Parameters
@@ -144,9 +146,11 @@ def get_data(url, years=[]):
     Returns
     -------
     pd.DataFrame
-        dataframe containing the meteo data
+         A dataframe containing the meteo data
     """
     # Retrieve all regions and their links for the chosen country
+    if years is None:
+        years = []
     cities = get_cities_url(url)
     all_data = []
 
