@@ -133,7 +133,7 @@ def get_day_data(url: str) -> tuple[list[str], list[str]]:
     return kpis, values
 
 
-def get_data(url: str, years: int = None) -> pd.DataFrame:
+def get_data(url: str, years: List[int] = None) -> pd.DataFrame:
     """get data for a country and for the specified years
 
     Parameters
@@ -141,7 +141,7 @@ def get_data(url: str, years: int = None) -> pd.DataFrame:
     url : str
         the url of the country
     years : list, optional
-        list containing the years, by default []
+        list containing the years, by default None
 
     Returns
     -------
