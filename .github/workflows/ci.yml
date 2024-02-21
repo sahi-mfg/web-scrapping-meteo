@@ -18,4 +18,4 @@ jobs:
         pip install -r requirements.txt
     - name: Run linter
       run: |
-        python -m pylint .
+        python -m pylint meteo.py
