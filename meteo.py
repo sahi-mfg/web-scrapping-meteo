@@ -1,11 +1,15 @@
-from typing import Tuple, List
+"""
+scraping historique-meteo.net to get meteo data from Côte d'Ivoire
+@author: Sahi Gonsangbeu
+"""
 
-import requests
 import re
 import unicodedata
+from typing import Tuple, List
 
-from bs4 import BeautifulSoup as bs  # type: ignore
 import pandas as pd
+import requests
+from bs4 import BeautifulSoup as bs  # type: ignore
 from tqdm import tqdm
 
 
@@ -22,7 +26,7 @@ def get_countries_urls(url: str) -> pd.DataFrame:
     pd.DataFrame
         A dataframe with the urls and the name of each country
     """
-    request = requests.get(url)
+    request = requests.get(url, timeout=5)
     soup = bs(request.text, "html.parser")
     base = "https://www.historique-meteo.net"
     # extraction des pays
@@ -32,7 +36,7 @@ def get_countries_urls(url: str) -> pd.DataFrame:
     url_country = [base + tag["href"] for tag in url_country_tags]
     # récupération du nom de chaque pays
     country_name = [tag.get_text(strip=True) for tag in country_tags]
-    infos = [(url, nom) for (url, nom) in zip(url_country, country_name)]
+    infos = list(zip(url_country, country_name))
     df_country = pd.DataFrame(infos, columns=["Url", "Country"])
     return df_country
 
@@ -50,16 +54,20 @@ def get_cities_url(url: str) -> List[Tuple[str, str]]:
     list
         A list of urls for each city
     """
-    request = requests.get(url)
+    request = requests.get(url, timeout=5)
     soup = bs(request.text, "html.parser")
     base = "https://www.historique-meteo.net"
     # extraction des régions
-    city_tags = soup.find("div").find_all_next("a", {"class": "list-group-item"}, href=True)
+    city_tags = soup.find("div").find_all_next(
+        "a", {"class": "list-group-item"}, href=True
+    )
     # recupération des urls
     url_city = [base + tag["href"] for tag in city_tags]
     # récupération des noms des régions (des villes en fait)
-    cities_names = ["".join(tag.get_attribute_list("title")).strip()[19:] for tag in city_tags]
-    infos = [(url, nom) for (url, nom) in zip(url_city, cities_names)]
+    cities_names = [
+        "".join(tag.get_attribute_list("title")).strip()[19:] for tag in city_tags
+    ]
+    infos = list(zip(url_city, cities_names))
     # on ne garde que les données par villes (on exclut celles par années)
     return infos[15:]
 
@@ -118,7 +126,7 @@ def get_day_data(url: str) -> tuple[list[str], list[str]]:
     tuple
         A tuple containing the information and their values
     """
-    request = requests.get(url)
+    request = requests.get(url, timeout=5)
     soup = bs(request.text, "html.parser")
     # extraction des kpis
     kpis = soup.find("table").find_all("tr")[1:]
@@ -162,15 +170,19 @@ def get_data(url: str, years: List[int] = None) -> pd.DataFrame:
             months_range = range(1, 13)
 
         for month in months_range:
-            for city_url, city_name in cities:
+            for city_url, _ in cities:
                 # Retrieve data for each day of the month
                 days_range = (
-                    range(1, 32) if month in [1, 3, 5, 7, 8, 10, 12] else range(1, 31) if month != 2 else range(1, 29)
+                    range(1, 32)
+                    if month in [1, 3, 5, 7, 8, 10, 12]
+                    else range(1, 31) if month != 2 else range(1, 29)
                 )
 
                 for day in tqdm(days_range, desc=f"{year}-{month}"):
                     # Retrieve data for the specific day and region
-                    kpis, values = get_day_data(f"{city_url}/{year}/{month:02}/{day:02}")
+                    kpis, values = get_day_data(
+                        f"{city_url}/{year}/{month:02}/{day:02}"
+                    )
                     data = dict(zip(kpis, values))
                     data["Date"] = f"{year}/{month:02}/{day:02}"
                     # Add the data to the list
