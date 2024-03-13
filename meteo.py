@@ -5,7 +5,7 @@ scraping historique-meteo.net to get meteo data from Côte d'Ivoire
 
 import re
 import unicodedata
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 import pandas as pd
 import requests
@@ -58,15 +58,11 @@ def get_cities_url(url: str) -> List[Tuple[str, str]]:
     soup = bs(request.text, "html.parser")
     base = "https://www.historique-meteo.net"
     # extraction des régions
-    city_tags = soup.find("div").find_all_next(
-        "a", {"class": "list-group-item"}, href=True
-    )
+    city_tags = soup.find("div").find_all_next("a", {"class": "list-group-item"}, href=True)
     # recupération des urls
     url_city = [base + tag["href"] for tag in city_tags]
     # récupération des noms des régions (des villes en fait)
-    cities_names = [
-        "".join(tag.get_attribute_list("title")).strip()[19:] for tag in city_tags
-    ]
+    cities_names = ["".join(tag.get_attribute_list("title")).strip()[19:] for tag in city_tags]
     infos = list(zip(url_city, cities_names))
     # on ne garde que les données par villes (on exclut celles par années)
     return infos[15:]
@@ -141,7 +137,7 @@ def get_day_data(url: str) -> tuple[list[str], list[str]]:
     return kpis, values
 
 
-def get_data(url: str, years: List[int] = None) -> pd.DataFrame:
+def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
     """get data for a country and for the specified years
 
     Parameters
@@ -173,16 +169,12 @@ def get_data(url: str, years: List[int] = None) -> pd.DataFrame:
             for city_url, _ in cities:
                 # Retrieve data for each day of the month
                 days_range = (
-                    range(1, 32)
-                    if month in [1, 3, 5, 7, 8, 10, 12]
-                    else range(1, 31) if month != 2 else range(1, 29)
+                    range(1, 32) if month in [1, 3, 5, 7, 8, 10, 12] else range(1, 31) if month != 2 else range(1, 29)
                 )
 
                 for day in tqdm(days_range, desc=f"{year}-{month}"):
                     # Retrieve data for the specific day and region
-                    kpis, values = get_day_data(
-                        f"{city_url}/{year}/{month:02}/{day:02}"
-                    )
+                    kpis, values = get_day_data(f"{city_url}/{year}/{month:02}/{day:02}")
                     data = dict(zip(kpis, values))
                     data["Date"] = f"{year}/{month:02}/{day:02}"
                     # Add the data to the list
