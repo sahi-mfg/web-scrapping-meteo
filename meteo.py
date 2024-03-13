@@ -162,8 +162,8 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
 
     for year in years:
         # Stop at June 30th for the year 2022
-        if year == 2022:
-            months_range = range(1, 7)
+        if year == 2024:
+            months_range = range(1, 3)
         else:
             months_range = range(1, 13)
 
