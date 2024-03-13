@@ -3,6 +3,8 @@ scraping historique-meteo.net to get meteo data from Côte d'Ivoire
 @author: Sahi Gonsangbeu
 """
 
+# pylint: max-line-length=120
+
 import re
 import unicodedata
 from typing import Tuple, List, Optional
