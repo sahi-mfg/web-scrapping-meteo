@@ -158,6 +158,7 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
     pd.DataFrame
          A dataframe containing the meteo data
     """
+
     # Retrieve all regions and their links for the chosen country
     if years is None:
         years = []
