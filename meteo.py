@@ -13,6 +13,7 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup as bs  # type: ignore
 from tqdm import tqdm
+from sqlalchemy import create_engine
 
 
 def get_countries_urls(url: str) -> pd.DataFrame:
@@ -166,15 +167,13 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
     all_data = []
 
     for year in years:
-        # Stop at June 30th for the year 2022
         if year == 2024:
-            months_range = range(1, 3)
+            months_range = range(1, 4)
         else:
             months_range = range(1, 13)
 
         for month in months_range:
             for city_url, _ in cities:
-                # Retrieve data for each day of the month
                 days_range = (
                     range(1, 32)
                     if month in [1, 3, 5, 7, 8, 10, 12]
@@ -184,16 +183,27 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
                 )
 
                 for day in tqdm(days_range, desc=f"{year}-{month}"):
-                    # Retrieve data for the specific day and region
                     kpis, values = get_day_data(
                         f"{city_url}/{year}/{month:02}/{day:02}"
                     )
                     data = dict(zip(kpis, values))
                     data["Date"] = f"{year}/{month:02}/{day:02}"
-                    # Add the data to the list
                     all_data.append(data)
 
-    # Create a DataFrame from the list of dictionaries
     df = pd.DataFrame(all_data)
 
     return df
+
+
+def save_data_in_db(df: pd.DataFrame, database_url: str) -> None:
+    """save the data in a database
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        the dataframe to save
+    database_url : str
+        the url of the database
+    """
+    engine = create_engine(database_url)
+    df.to_sql("meteo_cotedivoire", engine, if_exists="replace", index=False)

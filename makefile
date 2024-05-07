@@ -10,7 +10,4 @@ run:
 	@python3 main.py
 	@echo "Done"
 
-test:
-	@echo "Running tests"
-	@python3 -m pytest -v
-	@echo "Done"
+

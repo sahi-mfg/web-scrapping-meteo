@@ -5,3 +5,5 @@ tqdm
 SQLAlchemy
 pytest
 ruff
+psycopg2-binary
+python-dotenv
