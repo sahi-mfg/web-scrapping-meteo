@@ -2,8 +2,6 @@ pandas
 beautifulsoup4
 requests
 tqdm
-SQLAlchemy
 pytest
 ruff
-psycopg2-binary
-python-dotenv
+aiohttp
