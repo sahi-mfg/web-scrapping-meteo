@@ -13,7 +13,8 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup as bs  # type: ignore
 from tqdm import tqdm
-from sqlalchemy import create_engine
+import aiohttp  # type: ignore
+import asyncio
 
 
 def get_countries_urls(url: str) -> pd.DataFrame:
@@ -116,7 +117,9 @@ def split_on_first_digit(s: str) -> Tuple[str, str]:
     return s, ""
 
 
-def get_day_data(url: str) -> tuple[list[str], list[str]]:
+async def get_day_data(
+    url: str, session: aiohttp.ClientSession
+) -> tuple[list[str], list[str]]:
     """get data for a specific day
 
     Parameters
@@ -129,22 +132,26 @@ def get_day_data(url: str) -> tuple[list[str], list[str]]:
     tuple
         A tuple containing the information and their values
     """
-    request = requests.get(url, timeout=5)
-    soup = bs(request.text, "html.parser")
-    # extraction des kpis
-    kpis = soup.find("table").find_all("tr")[1:]
-    kpis = [split_on_first_digit(kpi.get_text().strip())[0] for kpi in kpis]
-    # suppression du dernier élement qui n'est pas utile pour nous ici
-    kpis.pop()
-    # Pour mettre dans le bon format avec slugify
-    kpis = [slugify(kpi) for kpi in kpis]
-    # extractions des valeurs des kpis
-    values = soup.find("table").find_all("td", {"class": "text-center bg-primary"})[1:]
-    values = [value.get_text() for value in values]
-    return kpis, values
+    async with session.get(url) as response:
+        text = await response.text()
+        soup = bs(text, "html.parser")
+        # extraction des kpis
+        kpis = soup.find("table").find_all("tr")[1:]
+        kpis = [split_on_first_digit(kpi.get_text().strip())[0] for kpi in kpis]
+        # suppression du dernier élement qui n'est pas utile pour nous ici
+        kpis.pop()
+        # Pour mettre dans le bon format avec slugify
+        kpis = [slugify(kpi) for kpi in kpis]
+        # extractions des valeurs des kpis
+        values = soup.find("table").find_all("td", {"class": "text-center bg-primary"})[
+            1:
+        ]
+        values = [value.get_text() for value in values]
+
+        return kpis, values
 
 
-def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
+async def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
     """get data for a country and for the specified years
 
     Parameters
@@ -166,44 +173,39 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
     cities = get_cities_url(url)
     all_data = []
 
-    for year in years:
-        if year == 2024:
-            months_range = range(1, 4)
-        else:
-            months_range = range(1, 13)
+    async with aiohttp.ClientSession() as session:
+        for year in years:
+            if year == 2024:
+                months_range = range(1, 4)
+            else:
+                months_range = range(1, 13)
 
-        for month in months_range:
-            for city_url, _ in cities:
-                days_range = (
-                    range(1, 32)
-                    if month in [1, 3, 5, 7, 8, 10, 12]
-                    else range(1, 31)
-                    if month != 2
-                    else range(1, 29)
-                )
-
-                for day in tqdm(days_range, desc=f"{year}-{month}"):
-                    kpis, values = get_day_data(
-                        f"{city_url}/{year}/{month:02}/{day:02}"
+            for month in months_range:
+                for city_url, _ in cities:
+                    days_range = (
+                        range(1, 32)
+                        if month in [1, 3, 5, 7, 8, 10, 12]
+                        else range(1, 31)
+                        if month != 2
+                        else range(1, 29)
                     )
-                    data = dict(zip(kpis, values))
-                    data["Date"] = f"{year}/{month:02}/{day:02}"
-                    all_data.append(data)
 
-    df = pd.DataFrame(all_data)
+                    tasks = []
+                    for day in tqdm(days_range, desc=f"{year}-{month}"):
+                        task = asyncio.ensure_future(
+                            get_day_data(
+                                f"{city_url}/{year}/{month:02}/{day:02}", session
+                            )
+                        )
+                        tasks.append(task)
 
-    return df
+                    responses = await asyncio.gather(*tasks)
+                    for kpis, values in responses:
+                        data = dict(zip(kpis, values))
+                        data["Date"] = f"{year}/{month:02}/{day:02}"
+                        all_data.append(data)
 
+        df = pd.DataFrame(all_data)
+        print(df)
 
-def save_data_in_db(df: pd.DataFrame, database_url: str) -> None:
-    """save the data in a database
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        the dataframe to save
-    database_url : str
-        the url of the database
-    """
-    engine = create_engine(database_url)
-    df.to_sql("meteo_cotedivoire", engine, if_exists="replace", index=False)
+        return df
