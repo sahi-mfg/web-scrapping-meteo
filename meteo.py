@@ -71,7 +71,7 @@ def get_cities_url(url: str) -> List[Tuple[str, str]]:
     ]
     infos = list(zip(url_city, cities_names))
     # on ne garde que les données par villes (on exclut celles par années)
-    return infos[15:]
+    return infos[16:]
 
 
 def slugify(string: str) -> str:
@@ -131,17 +131,15 @@ def get_day_data(url: str) -> dict[str, str]:
     request = requests.get(url, timeout=5)
     soup = bs(request.text, "html.parser")
     # extraction des kpis
-    kpis = soup.find("table").find_all("td")[1:]
+    kpis = soup.find("table").find_all("td", {"class":""})[1:]
     kpis = [kpi.get_text().strip() for kpi in kpis]
-    # suppression du dernier élement qui n'est pas utile pour nous ici
-    #kpis = [kpis.remove(kpi) for kpi in kpis if kpi == ""]
-    # Pour mettre dans le bon format avec slugify
-    #kpis = [slugify(kpi) for kpi in kpis]
+    kpis = [slugify(kpi) for kpi in kpis]
     # extractions des valeurs des kpis
     values = soup.find("table").find_all("td", {"class": "text-center bg-primary"})[1:]
     values = [value.get_text() for value in values]
     return {kpi: value for kpi, value in zip(kpis, values)}
 
+# TODO: Rendre l'exécution de ce code plus rapide avec la programmation asynchrone et stocker ces données dans un data lake
 
 def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
     """get data for a country and for the specified years
@@ -162,17 +160,18 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
     if years is None:
         years = []
     cities = get_cities_url(url)
+    #print(cities)
     all_data = []
 
     for year in years:
-        # Stop at June 30th for the year 2022
+        # Stop at June 30th for the year 2024
         if year == 2024:
-            months_range = range(1, 3)
+            months_range = range(1, 7)
         else:
             months_range = range(1, 13)
 
         for month in months_range:
-            for city_url, _ in cities:
+            for (city_url, city_name) in cities:
                 # Retrieve data for each day of the month
                 days_range = (
                     range(1, 32)
@@ -182,15 +181,14 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
                     else range(1, 29)
                 )
 
-                for day in tqdm(days_range, desc=f"{year}-{month}"):
+                for day in tqdm(days_range, desc=f"{city_name} {year}-{month:02}", ascii=True, ncols=100):
                     # Retrieve data for the specific day and region
-                    kpis, values = get_day_data(
+                   data = get_day_data(
                         f"{city_url}/{year}/{month:02}/{day:02}"
                     )
-                    data = dict(zip(kpis, values))
-                    data["Date"] = f"{year}/{month:02}/{day:02}"
+                   data["Date"] = f"{year}/{month:02}/{day:02}"
                     # Add the data to the list
-                    all_data.append(data)
+                   all_data.append(data)
 
     # Create a DataFrame from the list of dictionaries
     df = pd.DataFrame(all_data)

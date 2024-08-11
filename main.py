@@ -1,15 +1,15 @@
-from meteo import get_data, get_day_data
+from meteo import get_data
 
 
 def main():
-    url = "https://www.historique-meteo.net/afrique/cote-d-ivoire/abidjan/2024/01/01/"
+    url = "https://www.historique-meteo.net/afrique/cote-d-ivoire/"
     #years = list(range(2020, 2025))
-    data = get_day_data(url)
-    print(data)
-    #df = get_data(url, years)
+    years = [2024]
+    df = get_data(url, years)
 
-    #return df
+    return df
 
 
 if __name__ == "__main__":
-    main()
+    data = main()
+    print(data)
