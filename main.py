@@ -3,7 +3,7 @@ from meteo import get_data
 
 def main():
     url = "https://www.historique-meteo.net/afrique/cote-d-ivoire"
-    years = [2024, 2022, 2021]
+    years = list(range(2020, 2025))
     df = get_data(url, years)
 
     return df
