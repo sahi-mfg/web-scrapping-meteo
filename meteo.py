@@ -115,7 +115,7 @@ def split_on_first_digit(s: str) -> Tuple[str, str]:
     return s, ""
 
 
-def get_day_data(url: str) -> tuple[list[str], list[str]]:
+def get_day_data(url: str) -> dict[str, str]:
     """get data for a specific day
 
     Parameters
@@ -131,16 +131,16 @@ def get_day_data(url: str) -> tuple[list[str], list[str]]:
     request = requests.get(url, timeout=5)
     soup = bs(request.text, "html.parser")
     # extraction des kpis
-    kpis = soup.find("table").find_all("tr")[1:]
-    kpis = [split_on_first_digit(kpi.get_text().strip())[0] for kpi in kpis]
+    kpis = soup.find("table").find_all("td")[1:]
+    kpis = [kpi.get_text().strip() for kpi in kpis]
     # suppression du dernier élement qui n'est pas utile pour nous ici
-    kpis.pop()
+    #kpis = [kpis.remove(kpi) for kpi in kpis if kpi == ""]
     # Pour mettre dans le bon format avec slugify
-    kpis = [slugify(kpi) for kpi in kpis]
+    #kpis = [slugify(kpi) for kpi in kpis]
     # extractions des valeurs des kpis
     values = soup.find("table").find_all("td", {"class": "text-center bg-primary"})[1:]
     values = [value.get_text() for value in values]
-    return kpis, values
+    return {kpi: value for kpi, value in zip(kpis, values)}
 
 
 def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:

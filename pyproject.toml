@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "web-scrapping-meteo"
+version = "0.1.0"
+description = "Scrapping Côte d'Ivoire's meteo data"
+authors = ["Sahi Mohamed Francis Gonsangbeu <mohamedfrancissahi@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pandas = "^2.2.2"
+beautifulsoup4 = "^4.12.3"
+requests = "^2.32.3"
+tqdm = "^4.66.5"
+sqlalchemy = "^2.0.32"
+pytest = "^8.3.2"
+ruff = "^0.5.7"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
