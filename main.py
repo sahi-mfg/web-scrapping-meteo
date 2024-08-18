@@ -12,4 +12,5 @@ def main():
 
 if __name__ == "__main__":
     data = main()
+    data.to_parquet("meteo.parquet", index=False)
     print(data)

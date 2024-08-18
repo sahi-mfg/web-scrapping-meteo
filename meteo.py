@@ -15,6 +15,19 @@ from bs4 import BeautifulSoup as bs  # type: ignore
 from tqdm import tqdm
 
 
+def fetch_html_soup(url: str) -> bs:
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+
+        soup = bs(response.text, "lxml")
+        return soup
+    except requests.exceptions.Timeout:
+        print(f"Request to {url} timed out.")
+    except requests.exceptions.RequestException as e:
+        print(f"An error occured: {e}")
+    return None
+
 def get_countries_urls(url: str) -> pd.DataFrame:
     """get urls for each country
 
@@ -28,8 +41,7 @@ def get_countries_urls(url: str) -> pd.DataFrame:
     pd.DataFrame
         A dataframe with the urls and the name of each country
     """
-    request = requests.get(url, timeout=5)
-    soup = bs(request.text, "html.parser")
+    soup = fetch_html_soup(url)
     base = "https://www.historique-meteo.net"
     # extraction des pays
     country_tags = soup.find_all("div", {"class": "item-text"})
@@ -56,8 +68,7 @@ def get_cities_url(url: str) -> List[Tuple[str, str]]:
     list
         A list of urls for each city
     """
-    request = requests.get(url, timeout=5)
-    soup = bs(request.text, "html.parser")
+    soup = fetch_html_soup(url)
     base = "https://www.historique-meteo.net"
     # extraction des régions
     city_tags = soup.find("div").find_all_next(
@@ -128,8 +139,7 @@ def get_day_data(url: str) -> dict[str, str]:
     tuple
         A tuple containing the information and their values
     """
-    request = requests.get(url, timeout=5)
-    soup = bs(request.text, "html.parser")
+    soup = fetch_html_soup(url)
     # extraction des kpis
     kpis = soup.find("table").find_all("td", {"class":""})[1:]
     kpis = [kpi.get_text().strip() for kpi in kpis]
