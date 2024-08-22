@@ -17,6 +17,8 @@ pytest = "^8.3.2"
 ruff = "^0.5.7"
 pretty-errors = "^1.2.25"
 lxml = "^5.3.0"
+pyarrow = "^17.0.0"
+fastparquet = "^2024.5.0"
 
 
 [build-system]
