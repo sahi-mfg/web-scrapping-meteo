@@ -1,4 +1,4 @@
-from meteo import get_data
+from meteo import get_data, transform_data
 
 
 def main():
@@ -6,7 +6,7 @@ def main():
     years = list(range(2020, 2025))
     #years = [2024]
     df = get_data(url, years)
-
+    df = transform_data(df)
     return df
 
 

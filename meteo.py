@@ -204,3 +204,29 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
     df = pd.DataFrame(all_data)
 
     return df
+
+
+def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    pass
+
+
+def convert_data_types(df: pd.DataFrame) -> pd.DataFrame:
+    pass
+
+
+def transform_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Apply a series of transformations to the data.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The input DataFrame.
+
+    Returns
+    -------
+    pd.DataFrame
+        The transformed DataFrame.
+
+    """
+    df = df.pipe(clean_data).pipe(convert_data_types)
+    return df
