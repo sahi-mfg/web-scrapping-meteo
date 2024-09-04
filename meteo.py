@@ -28,6 +28,7 @@ def fetch_html_soup(url: str) -> bs:
         print(f"An error occured: {e}")
     return None
 
+
 def get_countries_urls(url: str) -> pd.DataFrame:
     """get urls for each country
 
@@ -141,7 +142,7 @@ def get_day_data(url: str) -> dict[str, str]:
     """
     soup = fetch_html_soup(url)
     # extraction des kpis
-    kpis = soup.find("table").find_all("td", {"class":""})[1:]
+    kpis = soup.find("table").find_all("td", {"class": ""})[1:]
     kpis = [kpi.get_text().strip() for kpi in kpis]
     kpis = [slugify(kpi) for kpi in kpis]
     # extractions des valeurs des kpis
@@ -149,7 +150,9 @@ def get_day_data(url: str) -> dict[str, str]:
     values = [value.get_text() for value in values]
     return {kpi: value for kpi, value in zip(kpis, values)}
 
+
 # TODO: Rendre l'exécution de ce code plus rapide avec la programmation asynchrone et stocker ces données dans un data lake
+
 
 def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
     """get data for a country and for the specified years
@@ -170,7 +173,7 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
     if years is None:
         years = []
     cities = get_cities_url(url)
-    #print(cities)
+    # print(cities)
     all_data = []
 
     for year in years:
@@ -181,7 +184,7 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
             months_range = range(1, 13)
 
         for month in months_range:
-            for (city_url, city_name) in cities:
+            for city_url, city_name in cities:
                 # Retrieve data for each day of the month
                 days_range = (
                     range(1, 32)
@@ -191,42 +194,19 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
                     else range(1, 29)
                 )
 
-                for day in tqdm(days_range, desc=f"{city_name} {year}-{month:02}", ascii=True, ncols=100):
+                for day in tqdm(
+                    days_range,
+                    desc=f"{city_name} {year}-{month:02}",
+                    ascii=True,
+                    ncols=100,
+                ):
                     # Retrieve data for the specific day and region
-                   data = get_day_data(
-                        f"{city_url}/{year}/{month:02}/{day:02}"
-                    )
-                   data["Date"] = f"{year}/{month:02}/{day:02}"
+                    data = get_day_data(f"{city_url}/{year}/{month:02}/{day:02}")
+                    data["Date"] = f"{year}/{month:02}/{day:02}"
                     # Add the data to the list
-                   all_data.append(data)
+                    all_data.append(data)
 
     # Create a DataFrame from the list of dictionaries
     df = pd.DataFrame(all_data)
 
-    return df
-
-
-def clean_data(df: pd.DataFrame) -> pd.DataFrame:
-    pass
-
-
-def convert_data_types(df: pd.DataFrame) -> pd.DataFrame:
-    pass
-
-
-def transform_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Apply a series of transformations to the data.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        The input DataFrame.
-
-    Returns
-    -------
-    pd.DataFrame
-        The transformed DataFrame.
-
-    """
-    df = df.pipe(clean_data).pipe(convert_data_types)
     return df
