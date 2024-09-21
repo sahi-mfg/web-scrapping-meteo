@@ -1,6 +1,6 @@
 import os
 
-from meteo import get_data
+from src.meteo import get_data
 from sqlalchemy import create_engine
 from dotenv import load_dotenv  # type: ignore
 
