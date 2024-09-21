@@ -30,6 +30,6 @@ if __name__ == "__main__":
     engine = create_engine(f"sqlite://{db_username}:{db_password}@{db_host}/{db_name}")
 
     # Save the data to the data warehouse
-    data.to_sql("meteo_data", engine, if_exists="replace", index=False)
+    data.to_sql("meteo_data", con=engine, if_exists="replace", index=False)
 
     print("Data successfully saved to the data warehouse.")
