@@ -27,7 +27,7 @@ if __name__ == "__main__":
     db_name = os.getenv("DB_NAME")
 
     # Create a database connection
-    engine = create_engine(f"sqlite:///{db_name}")
+    engine = create_engine(f"sqlite://{db_username}:{db_password}@{db_host}/{db_name}")
 
     # Save the data to the data warehouse
     data.to_sql("meteo_data", engine, if_exists="replace", index=False)

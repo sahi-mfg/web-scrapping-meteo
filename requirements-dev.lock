@@ -30,6 +30,10 @@ pandas==2.2.3
     # via web-scrapping-meteo
 pluggy==1.5.0
     # via pytest
+psycopg2==2.9.9
+    # via web-scrapping-meteo
+psycopg2-binary==2.9.9
+    # via web-scrapping-meteo
 pytest==8.3.3
     # via web-scrapping-meteo
 python-dateutil==2.9.0.post0
