@@ -1,7 +1,7 @@
 [project]
 name = "web-scrapping-meteo"
 version = "0.1.0"
-description = "Add your description here"
+description = "scrapping weather data in Côte d'ivoire"
 authors = [
     { name = "Sahi Mohamed Francis Gonsangbeu", email = "mohamedfrancissahi@gmail.com" }
 ]
