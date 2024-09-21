@@ -1,28 +1,32 @@
-[tool.poetry]
+[project]
 name = "web-scrapping-meteo"
 version = "0.1.0"
-description = "Scrapping Côte d'Ivoire's meteo data"
-authors = ["Sahi Mohamed Francis Gonsangbeu <mohamedfrancissahi@gmail.com>"]
+description = "Add your description here"
+authors = [
+    { name = "Sahi Mohamed Francis Gonsangbeu", email = "mohamedfrancissahi@gmail.com" }
+]
+dependencies = [
+    "pandas>=2.2.3",
+    "beautifulsoup4>=4.12.3",
+    "requests>=2.32.3",
+    "tqdm>=4.66.5",
+    "pytest>=8.3.3",
+    "sqlalchemy>=2.0.35",
+    "ruff>=0.6.6",
+]
 readme = "README.md"
-package-mode = false
-
-[tool.poetry.dependencies]
-python = "^3.12"
-pandas = "^2.2.2"
-beautifulsoup4 = "^4.12.3"
-requests = "^2.32.3"
-tqdm = "^4.66.5"
-sqlalchemy = "^2.0.32"
-pytest = "^8.3.2"
-ruff = "^0.5.7"
-pretty-errors = "^1.2.25"
-lxml = "^5.3.0"
-pyarrow = "^17.0.0"
-fastparquet = "^2024.5.0"
-python-dotenv = "^1.0.1"
-
-
+requires-python = ">= 3.8"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/web_scrapping_meteo"]
