@@ -9,10 +9,10 @@ import re
 import unicodedata
 from typing import Tuple, List, Optional
 
-import pandas as pd
+from polars import DataFrame
 import requests
 from bs4 import BeautifulSoup as bs  # type: ignore
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore
 
 
 def fetch_html_soup(url: str) -> bs:
@@ -29,7 +29,7 @@ def fetch_html_soup(url: str) -> bs:
     return None
 
 
-def get_countries_urls(url: str) -> pd.DataFrame:
+def get_countries_urls(url: str) -> DataFrame:
     """get urls for each country
 
     Parameters
@@ -39,7 +39,7 @@ def get_countries_urls(url: str) -> pd.DataFrame:
 
     Returns
     -------
-    pd.DataFrame
+    DataFrame
         A dataframe with the urls and the name of each country
     """
     soup = fetch_html_soup(url)
@@ -52,7 +52,7 @@ def get_countries_urls(url: str) -> pd.DataFrame:
     # récupération du nom de chaque pays
     country_name = [tag.get_text(strip=True) for tag in country_tags]
     infos = list(zip(url_country, country_name))
-    df_country = pd.DataFrame(infos, columns=["Url", "Country"])
+    df_country = DataFrame(infos, columns=["Url", "Country"])
     return df_country
 
 
@@ -154,7 +154,7 @@ def get_day_data(url: str) -> dict[str, str]:
 # TODO: Rendre l'exécution de ce code plus rapide avec la programmation asynchrone et stocker ces données dans un data lake
 
 
-def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
+def get_data(url: str, years: Optional[List[int]] = None) -> DataFrame:
     """get data for a country and for the specified years
 
     Parameters
@@ -207,6 +207,6 @@ def get_data(url: str, years: Optional[List[int]] = None) -> pd.DataFrame:
                     all_data.append(data)
 
     # Create a DataFrame from the list of dictionaries
-    df = pd.DataFrame(all_data)
+    df = DataFrame(all_data)
 
     return df
