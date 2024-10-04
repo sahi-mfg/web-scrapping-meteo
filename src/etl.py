@@ -1,11 +1,11 @@
 import os
-from src.meteo import get_data
+from meteo import get_data
 from dotenv import load_dotenv  # type: ignore
 from polars import DataFrame
 from sqlalchemy import create_engine
 
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator  # type: ignore
+from airflow.operators.python import PythonOperator  # type: ignore
 from datetime import datetime
 
 # Load environment variables
@@ -21,9 +21,33 @@ def extract_data(url: str, years: list) -> DataFrame:
     return df
 
 
-def transform_data(data: DataFrame) -> DataFrame:
-    df = data.copy()
+def conversion(df: DataFrame, column: str, char: str) -> DataFrame:
+    df = df.with_column(column, df[column].str.replace(char, "").cast(float))
+    return df
 
+
+def transform_data(data: DataFrame) -> DataFrame:
+    df = data.to_pandas()
+    df = df.dropna()
+    df = df.drop_duplicates()
+
+    temp_cols = [col for col in data.columns if "temperature" in col]
+    for col in temp_cols:
+        df = conversion(df, col, "°")
+
+    per_cols = ["humidite", "couverture-nuageuse"]
+    for col in per_cols:
+        df = conversion(df, col, "%")
+
+    df = conversion(df, "pression", "hPa")
+    df = conversion(df, "precipitations", "mm")
+    df = conversion(df, "vitesse-vent", "km/h")
+    df = conversion(df, "point-de-rosee", "°C")
+    df = conversion(df, "visibilite", "km")
+    df["indice-de-chaleur"] = df["indice-de-chaleur"].astype(float)
+    df["Date"] = df["Date"].astype("datetime64[ns]")
+    df.drop(columns=["duree-du-jour"])
+    df = df._from_pandas(df)
     return df
 
 
@@ -42,9 +66,9 @@ def etl():
 # Définition du DAG Airflow
 default_args = {
     "owner": "airflow",
-    "start_date": datetime(2024, 1, 1),
+    "start_date": datetime(2024, 10, 3),
     "retries": 1,
 }
 
-with DAG("weather_etl", default_args=default_args, schedule_interval="@daily") as dag:
+with DAG("weather_etl", default_args=default_args, schedule="@daily") as dag:
     etl_task = PythonOperator(task_id="run_etl", python_callable=etl)

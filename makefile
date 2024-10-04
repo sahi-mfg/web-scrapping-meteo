@@ -5,9 +5,9 @@ install:
 	@echo "Done"
 
 
-run:
+run-etl:
 	@echo "Running the program"
-	@python3 main.py
+	@python3 src/etl.py
 	@echo "Done"
 
 test:
