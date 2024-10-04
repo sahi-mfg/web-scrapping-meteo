@@ -1,4 +1,6 @@
 import os
+import logging
+
 from meteo import get_data
 from dotenv import load_dotenv  # type: ignore
 from polars import DataFrame
@@ -15,9 +17,14 @@ years = [2024, 2023, 2022]
 
 SCRAPPING_URL = os.getenv("SCRAPPING_URL")
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def extract_data(url: str, years: list) -> DataFrame:
+    logger.info("Extracting data from the web")
     df = get_data(url, years)
+    logger.info(f"Extraction done. {len(df)} lines extracted.")
     return df
 
 
