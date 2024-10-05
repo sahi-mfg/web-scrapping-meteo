@@ -7,11 +7,13 @@ scraping historique-meteo.net to get meteo data from Côte d'Ivoire
 
 import re
 import unicodedata
-from typing import Tuple, List, Optional
+from typing import List, Optional, Tuple
 
-from polars import DataFrame
+import pandas as pd
+import polars as pl
 import requests
 from bs4 import BeautifulSoup as bs  # type: ignore
+from polars import DataFrame
 from tqdm import tqdm  # type: ignore
 
 
@@ -52,7 +54,8 @@ def get_countries_urls(url: str) -> DataFrame:
     # récupération du nom de chaque pays
     country_name = [tag.get_text(strip=True) for tag in country_tags]
     infos = list(zip(url_country, country_name))
-    df_country = DataFrame(infos, columns=["Url", "Country"])
+    df_country = pd.DataFrame(infos, columns=["Url", "Country"])
+    df_country = pl.from_pandas(df_country)
     return df_country
 
 
@@ -72,15 +75,11 @@ def get_cities_url(url: str) -> List[Tuple[str, str]]:
     soup = fetch_html_soup(url)
     base = "https://www.historique-meteo.net"
     # extraction des régions
-    city_tags = soup.find("div").find_all_next(
-        "a", {"class": "list-group-item"}, href=True
-    )
+    city_tags = soup.find("div").find_all_next("a", {"class": "list-group-item"}, href=True)
     # recupération des urls
     url_city = [base + tag["href"] for tag in city_tags]
     # récupération des noms des régions (des villes en fait)
-    cities_names = [
-        "".join(tag.get_attribute_list("title")).strip()[19:] for tag in city_tags
-    ]
+    cities_names = ["".join(tag.get_attribute_list("title")).strip()[19:] for tag in city_tags]
     infos = list(zip(url_city, cities_names))
     # on ne garde que les données par villes (on exclut celles par années)
     return infos[16:]
@@ -187,11 +186,7 @@ def get_data(url: str, years: Optional[List[int]] = None) -> DataFrame:
             for city_url, city_name in cities:
                 # Retrieve data for each day of the month
                 days_range = (
-                    range(1, 32)
-                    if month in [1, 3, 5, 7, 8, 10, 12]
-                    else range(1, 31)
-                    if month != 2
-                    else range(1, 29)
+                    range(1, 32) if month in [1, 3, 5, 7, 8, 10, 12] else range(1, 31) if month != 2 else range(1, 29)
                 )
 
                 for day in tqdm(

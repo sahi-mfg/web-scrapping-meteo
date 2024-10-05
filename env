@@ -1,0 +1,7 @@
+SCRAPPING_URL=https://www.historique-meteo.net/afrique/cote-d-ivoire/
+
+WAREHOUSE_USER=sahi
+WAREHOUSE_PASSWORD=sdepassword1234
+WAREHOUSE_DB=warehouse
+WAREHOUSE_HOST=warehouse
+WAREHOUSE_PORT=5432

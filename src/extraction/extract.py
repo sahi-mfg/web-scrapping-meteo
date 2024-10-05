@@ -1,23 +1,23 @@
 import logging
 import os
 
-from utils.webscrapping import get_data
-from dotenv import load_dotenv  # type: ignore
-
 from polars import DataFrame
-
-# Load environment variables
-load_dotenv()
+from utils.webscrapping import get_data
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-years = [2024, 2023, 2022]
-SCRAPPING_URL = os.getenv("SCRAPPING_URL")
 
+def extract_data(url: str, years: list) -> DataFrame:
+    """extract Côte d'ivoire's meteo data from the web for the specified years
 
-def extract_data(years: list) -> DataFrame:
+    Args:
+        years (list): years to extract
+
+    Returns:
+        DataFrame: A DataFrame containing the extracted data
+    """
     logger.info("Extracting data from the web")
-    df = get_data(SCRAPPING_URL, years)
+    df = get_data(url, years)
     logger.info(f"Extraction done. {len(df)} lines extracted.")
     return df
