@@ -40,7 +40,8 @@ def transform_data(data: DataFrame) -> DataFrame:
     """
     # Define column transformations
     conversions = {
-        "temperature": (r"°", pl.Float64),
+        "temperature-maximale": (r"°", pl.Float64),
+        "temperature-minimale": (r"°", pl.Float64),
         "humidite": (r"%", pl.Float64),
         "couverture-nuageuse": (r"%", pl.Float64),
         "pression": (r"hPa", pl.Float64),
