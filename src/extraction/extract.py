@@ -1,5 +1,4 @@
 import logging
-import os
 
 from polars import DataFrame
 from utils.webscrapping import get_data

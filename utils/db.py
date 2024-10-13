@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
 
-import psycopg2
+import psycopg2  # type: ignore
 
 
 @dataclass
@@ -15,7 +15,10 @@ class DBConnection:
 
 class WarehouseConnection:
     def __init__(self, db_conn: DBConnection):
-        self.conn_url = f"postgresql://{db_conn.user}:{db_conn.password}@" f"{db_conn.host}:{db_conn.port}/{db_conn.db}"
+        self.conn_url = (
+            f"postgresql://{db_conn.user}:{db_conn.password}@"
+            f"{db_conn.host}:{db_conn.port}/{db_conn.db}"
+        )
 
     @contextmanager
     def managed_cursor(self, cursor_factory=None):
