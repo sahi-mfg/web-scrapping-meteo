@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 
 
-def get_countries_urls(url):
+def get_countries_urls(url: str) -> pd.DataFrame:
     """get urls for each countries
 
     Parameters
@@ -35,7 +35,7 @@ def get_countries_urls(url):
     return df_country
 
 
-def get_cities_url(url):
+def get_cities_url(url: str) -> list:
     """get urls for each cities of a country
 
     Parameters
@@ -52,17 +52,21 @@ def get_cities_url(url):
     soup = bs(request.text, "html.parser")
     base = "https://www.historique-meteo.net"
     # extraction des régions
-    city_tags = soup.find("div").find_all_next("a", {"class": "list-group-item"}, href=True)
+    city_tags = soup.find("div").find_all_next(
+        "a", {"class": "list-group-item"}, href=True
+    )
     # recupération des urls
     url_city = [base + tag["href"] for tag in city_tags]
     # récupération des noms des régions (des villes en fait)
-    cities_names = ["".join(tag.get_attribute_list("title")).strip()[19:] for tag in city_tags]
+    cities_names = [
+        "".join(tag.get_attribute_list("title")).strip()[19:] for tag in city_tags
+    ]
     infos = [(url, nom) for (url, nom) in zip(url_city, cities_names)]
     # on ne garde que les données par villes (on exclut celles par années)
     return infos[15:]
 
 
-def slugify(string):
+def slugify(string: str) -> str:
     """slugify a string
 
     Parameters
@@ -84,7 +88,7 @@ def slugify(string):
     return slugified_string
 
 
-def split_on_first_digit(s):
+def split_on_first_digit(s: str) -> tuple:
     """split a string on the first digit
 
     Parameters
@@ -103,7 +107,7 @@ def split_on_first_digit(s):
     return s, ""
 
 
-def get_day_data(url):
+def get_day_data(url: str) -> tuple:
     """get data for a specific day
 
     Parameters
@@ -131,7 +135,7 @@ def get_day_data(url):
     return (kpis, values)
 
 
-def get_data(url, years=[]):
+def get_data(url: str, years: list[int] = []) -> pd.DataFrame:
     """get data for a country and for the specified years
 
     Parameters
@@ -161,12 +165,18 @@ def get_data(url, years=[]):
             for city_url, city_name in cities:
                 # Retrieve data for each day of the month
                 days_range = (
-                    range(1, 32) if month in [1, 3, 5, 7, 8, 10, 12] else range(1, 31) if month != 2 else range(1, 29)
+                    range(1, 32)
+                    if month in [1, 3, 5, 7, 8, 10, 12]
+                    else range(1, 31)
+                    if month != 2
+                    else range(1, 29)
                 )
 
                 for day in tqdm(days_range, desc=f"{year}-{month}"):
                     # Retrieve data for the specific day and region
-                    kpis, values = get_day_data(f"{city_url}/{year}/{month:02}/{day:02}")
+                    kpis, values = get_day_data(
+                        f"{city_url}/{year}/{month:02}/{day:02}"
+                    )
                     data = dict(zip(kpis, values))
                     data["Date"] = f"{year}/{month:02}/{day:02}"
                     # Add the data to the list
