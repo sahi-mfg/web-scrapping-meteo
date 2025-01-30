@@ -1,4 +1,4 @@
-from meteo import get_data
+from meteo import get_data, get_day_data
 
 
 def main() -> None:
@@ -10,4 +10,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    print(
+        get_day_data(
+            "https://www.historique-meteo.net/afrique/cote-d-ivoire/abidjan/2024/01/01"
+        )
+    )
+    # main()

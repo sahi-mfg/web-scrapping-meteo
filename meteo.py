@@ -1,10 +1,10 @@
-import requests
+import requests  # type: ignore
 import re
 import unicodedata
 
 from bs4 import BeautifulSoup as bs  # type: ignore
-import pandas as pd
-from tqdm import tqdm
+import pandas as pd  # type: ignore
+from tqdm import tqdm  # type: ignore
 
 
 def get_countries_urls(url: str) -> pd.DataFrame:
@@ -52,9 +52,7 @@ def get_cities_url(url: str) -> list:
     soup = bs(request.text, "html.parser")
     base = "https://www.historique-meteo.net"
     # extraction des régions
-    city_tags = soup.find("div").find_all_next(
-        "a", {"class": "list-group-item"}, href=True
-    )
+    city_tags = soup.find("div", {"class": "list-group"}).find_all("a", href=True)
     # recupération des urls
     url_city = [base + tag["href"] for tag in city_tags]
     # récupération des noms des régions (des villes en fait)
@@ -107,7 +105,9 @@ def split_on_first_digit(s: str) -> tuple:
     return s, ""
 
 
-def get_day_data(url: str) -> tuple:
+def get_day_data(
+    url: str,
+) -> dict:
     """get data for a specific day
 
     Parameters
@@ -123,8 +123,8 @@ def get_day_data(url: str) -> tuple:
     request = requests.get(url)
     soup = bs(request.text, "html.parser")
     # extraction des kpis
-    kpis = soup.find("table").find_all("tr")[1:]
-    kpis = [split_on_first_digit(kpi.get_text().strip())[0] for kpi in kpis]
+    kpis = soup.find("table").find_all("td")[1:]
+    kpis = [kpi.get_text() for kpi in kpis]
     # suppression du dernier élement qui n'est pas utile pour nous ici
     kpis.pop()
     # Pour mettre dans le bon format avec slugify
@@ -132,7 +132,7 @@ def get_day_data(url: str) -> tuple:
     # extractions des valeurs des kpis
     values = soup.find("table").find_all("td", {"class": "text-center bg-primary"})[1:]
     values = [value.get_text() for value in values]
-    return (kpis, values)
+    return {kpi: value for kpi, value in zip(kpis, values)}
 
 
 def get_data(url: str, years: list[int] = []) -> pd.DataFrame:
@@ -162,7 +162,7 @@ def get_data(url: str, years: list[int] = []) -> pd.DataFrame:
             months_range = range(1, 13)
 
         for month in months_range:
-            for city_url, city_name in cities:
+            for city_url, _ in cities:
                 # Retrieve data for each day of the month
                 days_range = (
                     range(1, 32)
